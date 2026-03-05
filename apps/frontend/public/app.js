@@ -4,6 +4,8 @@
  * 符合CLAUDE.md規範，完整null防護
  */
 
+console.log('📦 app.js開始載入...');
+
 // 全局變數
 let socket = null;
 let syncData = {
@@ -12,18 +14,28 @@ let syncData = {
     sync_version: '1.0.0'
 };
 
+console.log('✅ 全局變數初始化完成');
+
 // 初始化函數
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 台灣房東系統前端啟動');
+    console.log('🚀 DOMContentLoaded事件觸發 - 台灣房東系統前端啟動');
+    console.log('📋 檢查DOM元素...');
+    console.log('   document.body存在:', !!document.body);
+    console.log('   document.getElementById測試:', document.getElementById('addPropertyBtn') ? '找到addPropertyBtn' : '未找到addPropertyBtn');
     
     // 初始化系統
+    console.log('🔄 開始初始化系統...');
     initSystem();
     
     // 綁定事件
+    console.log('🔗 開始綁定事件...');
     bindEvents();
     
     // 測試連接
+    console.log('🌐 開始測試連接...');
     testConnection();
+    
+    console.log('🎉 前端初始化完成！');
 });
 
 // 初始化系統
@@ -326,22 +338,30 @@ function updateSystemStatus() {
 
 // 綁定事件
 function bindEvents() {
+    console.log('🔧 bindEvents函數開始執行');
+    
     // 快速入住按鈕
     const quickCheckinBtn = document.getElementById('quickCheckinBtn');
+    console.log('   quickCheckinBtn:', quickCheckinBtn ? '找到' : '未找到');
     if (quickCheckinBtn) {
         quickCheckinBtn.addEventListener('click', showCheckinModal);
+        console.log('   ✅ quickCheckinBtn事件綁定成功');
     }
     
     // 記錄成本按鈕
     const recordCostBtn = document.getElementById('recordCostBtn');
+    console.log('   recordCostBtn:', recordCostBtn ? '找到' : '未找到');
     if (recordCostBtn) {
         recordCostBtn.addEventListener('click', showCostModal);
+        console.log('   ✅ recordCostBtn事件綁定成功');
     }
     
     // 新增物業按鈕
     const addPropertyBtn = document.getElementById('addPropertyBtn');
+    console.log('   addPropertyBtn:', addPropertyBtn ? '找到' : '未找到');
     if (addPropertyBtn) {
         addPropertyBtn.addEventListener('click', showPropertyModal);
+        console.log('   ✅ addPropertyBtn事件綁定成功');
     }
     
     // 關閉入住Modal按鈕
