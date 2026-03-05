@@ -12,11 +12,11 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/simple-api-fixed.js"
+      "dest": "/apps/frontend/simple-api-fixed.js"
     },
     {
       "src": "/(.*)",
-      "dest": "/public/$1"
+      "dest": "/apps/frontend/public/$1"
     }
   ]
 }
