@@ -356,6 +356,30 @@ function bindEvents() {
         cancelCheckinBtn.addEventListener('click', hideCheckinModal);
     }
     
+    // 關閉物業Modal按鈕
+    const closePropertyModalBtn = document.getElementById('closePropertyModalBtn');
+    if (closePropertyModalBtn) {
+        closePropertyModalBtn.addEventListener('click', hidePropertyModal);
+    }
+    
+    // 取消物業按鈕
+    const cancelPropertyBtn = document.getElementById('cancelPropertyBtn');
+    if (cancelPropertyBtn) {
+        cancelPropertyBtn.addEventListener('click', hidePropertyModal);
+    }
+    
+    // 關閉成本Modal按鈕
+    const closeCostModalBtn = document.getElementById('closeCostModalBtn');
+    if (closeCostModalBtn) {
+        closeCostModalBtn.addEventListener('click', hideCostModal);
+    }
+    
+    // 取消成本按鈕
+    const cancelCostBtn = document.getElementById('cancelCostBtn');
+    if (cancelCostBtn) {
+        cancelCostBtn.addEventListener('click', hideCostModal);
+    }
+    
     // 入住表單提交
     const checkinForm = document.getElementById('checkinForm');
     if (checkinForm) {
@@ -504,6 +528,7 @@ async function handleCostSubmit(event) {
 // 處理物業提交
 async function handlePropertySubmit(event) {
     event.preventDefault();
+    console.log('📝 開始處理物業表單提交');
     
     const formData = new FormData(event.target);
     const data = {
@@ -512,14 +537,22 @@ async function handlePropertySubmit(event) {
         color: formData.get('color') || '#3B82F6'
     };
     
+    console.log('📋 表單資料:', data);
+    
     // 驗證資料
     if (!data.name) {
+        console.warn('⚠️ 驗證失敗：缺少物業名稱');
         showNotification('請填寫物業名稱', 'error');
         return;
     }
     
+    console.log('✅ 表單驗證通過');
+    
     try {
         const apiUrl = getApiUrl('/api/sync/save');
+        console.log('🔗 發送API請求到:', apiUrl);
+        console.log('📤 請求資料:', { type: 'property', data: data });
+        
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -531,33 +564,43 @@ async function handlePropertySubmit(event) {
             })
         });
         
+        console.log('📡 API回應狀態:', response.status, response.statusText);
+        
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            const errorText = await response.text();
+            console.error('❌ API錯誤回應:', errorText);
+            throw new Error(`HTTP ${response.status}: ${response.statusText}\n${errorText}`);
         }
         
         const result = await response.json();
+        console.log('✅ API回應成功:', result);
         
         if (result.success) {
+            console.log('🎉 物業新增成功！');
             showNotification('物業新增成功！', 'success');
             hidePropertyModal();
             
             // 重新獲取資料
+            console.log('🔄 重新獲取資料...');
             fetchInitialData();
             
             // 通知WebSocket
             if (socket) {
+                console.log('📡 發送WebSocket更新通知');
                 socket.emit('data_updated', {
                     type: 'property',
                     data: data
                 });
             }
         } else {
+            console.error('❌ 物業新增失敗:', result.error);
             showNotification(`物業新增失敗: ${result.error}`, 'error');
         }
         
     } catch (error) {
         console.error('❌ 物業新增失敗:', error);
-        showNotification(`物業新增失敗: ${error.message}`, 'error');
+        console.error('錯誤詳情:', error.stack);
+        showNotification(`物業新增失敗: ${error.message.split('\n')[0]}`, 'error');
     }
 }
 
@@ -759,10 +802,17 @@ function hideCostModal() {
 }
 
 function showPropertyModal() {
+    console.log('🔘 點擊新增物業按鈕，執行showPropertyModal');
+    
     const modal = document.getElementById('propertyModal');
     if (modal) {
+        console.log('✅ 找到propertyModal元素');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+        console.log('✅ Modal顯示設定完成');
+    } else {
+        console.error('❌ 找不到propertyModal元素！');
+        showNotification('找不到新增物業的表單，請刷新頁面重試', 'error');
     }
 }
 
