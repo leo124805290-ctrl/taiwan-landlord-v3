@@ -40,9 +40,9 @@ function initSystem() {
 
 // 連接WebSocket
 function connectWebSocket() {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.hostname === 'localhost' ? 'localhost:3000' : window.location.host;
-    const wsUrl = `${protocol}//${host}`;
+    // 使用後端Zeabur網址
+    const backendHost = 'taiwan-landlord-v3.zeabur.app';
+    const wsUrl = `wss://${backendHost}`;
     
     socket = io(wsUrl, {
         transports: ['websocket', 'polling'],
@@ -102,28 +102,45 @@ function connectWebSocket() {
 async function fetchInitialData() {
     try {
         const apiUrl = getApiUrl('/api/sync/all');
+        console.log('🔗 嘗試連接API:', apiUrl);
+        
         const response = await fetch(apiUrl, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            mode: 'cors'  // 明確指定CORS模式
         });
         
+        console.log('📡 API回應狀態:', response.status, response.statusText);
+        
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            const errorText = await response.text();
+            console.error('❌ API錯誤回應:', errorText);
+            throw new Error(`HTTP ${response.status}: ${response.statusText}\n${errorText}`);
         }
         
         const data = await response.json();
-        console.log('📊 獲取初始資料成功:', data);
+        console.log('📊 獲取初始資料成功，資料筆數:', data?.properties?.length || 0);
         
         syncData = data;
         updateUIWithData(data);
         updateLastSync();
         updateConnectionStatus('已連接', 'green');
         
+        // 顯示成功訊息
+        showNotification(`成功載入 ${data?.properties?.length || 0} 筆物業資料`, 'success');
+        
     } catch (error) {
         console.error('❌ 獲取初始資料失敗:', error);
-        showNotification(`無法獲取資料: ${error.message}`, 'error');
+        console.error('錯誤詳情:', error.stack);
+        
+        // 顯示詳細錯誤訊息
+        const errorMsg = error.message.includes('Failed to fetch') 
+            ? '無法連接到後端伺服器，請檢查網路連接' 
+            : `無法獲取資料: ${error.message.split('\n')[0]}`;
+        
+        showNotification(errorMsg, 'error');
         updateConnectionStatus('資料獲取失敗', 'red');
         
         // 使用模擬資料
@@ -309,6 +326,36 @@ function updateSystemStatus() {
 
 // 綁定事件
 function bindEvents() {
+    // 快速入住按鈕
+    const quickCheckinBtn = document.getElementById('quickCheckinBtn');
+    if (quickCheckinBtn) {
+        quickCheckinBtn.addEventListener('click', showCheckinModal);
+    }
+    
+    // 記錄成本按鈕
+    const recordCostBtn = document.getElementById('recordCostBtn');
+    if (recordCostBtn) {
+        recordCostBtn.addEventListener('click', showCostModal);
+    }
+    
+    // 新增物業按鈕
+    const addPropertyBtn = document.getElementById('addPropertyBtn');
+    if (addPropertyBtn) {
+        addPropertyBtn.addEventListener('click', showPropertyModal);
+    }
+    
+    // 關閉入住Modal按鈕
+    const closeCheckinModalBtn = document.getElementById('closeCheckinModalBtn');
+    if (closeCheckinModalBtn) {
+        closeCheckinModalBtn.addEventListener('click', hideCheckinModal);
+    }
+    
+    // 取消入住按鈕
+    const cancelCheckinBtn = document.getElementById('cancelCheckinBtn');
+    if (cancelCheckinBtn) {
+        cancelCheckinBtn.addEventListener('click', hideCheckinModal);
+    }
+    
     // 入住表單提交
     const checkinForm = document.getElementById('checkinForm');
     if (checkinForm) {
@@ -543,8 +590,9 @@ async function testConnection() {
 
 // 獲取API URL
 function getApiUrl(endpoint) {
-    const baseUrl = window.location.origin;
-    return `${baseUrl}${endpoint}`;
+    // 使用後端Zeabur網址
+    const backendUrl = 'https://taiwan-landlord-v3.zeabur.app';
+    return `${backendUrl}${endpoint}`;
 }
 
 // 顯示通知

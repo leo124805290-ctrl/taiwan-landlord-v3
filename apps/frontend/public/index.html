@@ -159,7 +159,7 @@
             <h3 class="text-lg font-semibold text-gray-900 mb-4">🚀 快速操作</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <!-- 快速入住 -->
-                <a href="#" onclick="showCheckinModal()" class="block p-5 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-xl hover:from-blue-100 hover:to-blue-200 transition-all duration-200">
+                <a href="#" id="quickCheckinBtn" class="block p-5 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-xl hover:from-blue-100 hover:to-blue-200 transition-all duration-200">
                     <div class="flex items-center">
                         <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
                             <i class="fas fa-user-plus text-white text-xl"></i>
@@ -172,7 +172,7 @@
                 </a>
 
                 <!-- 成本管理 -->
-                <a href="#" onclick="showCostModal()" class="block p-5 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl hover:from-green-100 hover:to-green-200 transition-all duration-200">
+                <a href="#" id="recordCostBtn" class="block p-5 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl hover:from-green-100 hover:to-green-200 transition-all duration-200">
                     <div class="flex items-center">
                         <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mr-4">
                             <i class="fas fa-bolt text-white text-xl"></i>
@@ -206,7 +206,7 @@
         <div class="px-4 mb-8">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-semibold text-gray-900">🏠 我的物業</h3>
-                <button onclick="showPropertyModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+                <button id="addPropertyBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
                     <i class="fas fa-plus mr-2"></i>新增物業
                 </button>
             </div>
@@ -262,7 +262,7 @@
             <div class="p-6">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-lg font-semibold text-gray-900">快速入住</h3>
-                    <button onclick="hideCheckinModal()" class="text-gray-400 hover:text-gray-500">
+                    <button id="closeCheckinModalBtn" class="text-gray-400 hover:text-gray-500">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -305,7 +305,7 @@
                     </div>
                     
                     <div class="flex justify-end space-x-3 pt-4">
-                        <button type="button" onclick="hideCheckinModal()" class="px-4 py-2 text-gray-700 border rounded-lg hover:bg-gray-50">
+                        <button type="button" id="cancelCheckinBtn" class="px-4 py-2 text-gray-700 border rounded-lg hover:bg-gray-50">
                             取消
                         </button>
                         <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
