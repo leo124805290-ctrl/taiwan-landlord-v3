@@ -114,6 +114,14 @@ function connectWebSocket() {
 async function fetchInitialData() {
     try {
         const apiUrl = getApiUrl('/api/sync/all');
+        
+        // 如果apiUrl為null，直接使用模擬數據
+        if (apiUrl === null) {
+            console.log('🔧 API網址為null，直接使用模擬數據');
+            useMockData();
+            return;
+        }
+        
         console.log('🔗 嘗試連接API:', apiUrl);
         
         const response = await fetch(apiUrl, {
@@ -443,6 +451,21 @@ async function handleCheckinSubmit(event) {
     
     try {
         const apiUrl = getApiUrl('/api/checkin/complete');
+        
+        // 如果apiUrl為null，使用模擬響應
+        if (apiUrl === null) {
+            console.log('🔧 使用模擬API響應（後端不可用）');
+            
+            // 模擬成功響應
+            showNotification('入住成功！（模擬模式）', 'success');
+            hideCheckinModal();
+            
+            // 重新獲取資料（會使用模擬數據）
+            fetchInitialData();
+            
+            return;
+        }
+        
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -504,6 +527,21 @@ async function handleCostSubmit(event) {
     
     try {
         const apiUrl = getApiUrl('/api/sync/save');
+        
+        // 如果apiUrl為null，使用模擬響應
+        if (apiUrl === null) {
+            console.log('🔧 使用模擬API響應（後端不可用）');
+            
+            // 模擬成功響應
+            showNotification('成本記錄成功！（模擬模式）', 'success');
+            hideCostModal();
+            
+            // 重新獲取資料（會使用模擬數據）
+            fetchInitialData();
+            
+            return;
+        }
+        
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -570,6 +608,35 @@ async function handlePropertySubmit(event) {
     
     try {
         const apiUrl = getApiUrl('/api/sync/save');
+        
+        // 如果apiUrl為null，使用模擬響應
+        if (apiUrl === null) {
+            console.log('🔧 使用模擬API響應（後端不可用）');
+            
+            // 模擬成功響應
+            const mockResult = {
+                success: true,
+                message: '物業新增成功（模擬模式）',
+                data: {
+                    id: Date.now(), // 使用時間戳作為模擬ID
+                    ...data
+                }
+            };
+            
+            console.log('✅ 模擬API回應成功:', mockResult);
+            
+            // 顯示成功訊息
+            console.log('🎉 物業新增成功！（模擬模式）');
+            showNotification('物業新增成功！（模擬模式）', 'success');
+            hidePropertyModal();
+            
+            // 重新獲取資料（會使用模擬數據）
+            console.log('🔄 重新獲取資料（模擬模式）...');
+            fetchInitialData();
+            
+            return;
+        }
+        
         console.log('🔗 發送API請求到:', apiUrl);
         console.log('📤 請求資料:', { type: 'property', data: data });
         
@@ -628,6 +695,14 @@ async function handlePropertySubmit(event) {
 async function testConnection() {
     try {
         const apiUrl = getApiUrl('/api/health');
+        
+        // 如果apiUrl為null，跳過健康檢查
+        if (apiUrl === null) {
+            console.log('🔧 跳過健康檢查（模擬數據模式）');
+            document.getElementById('apiStatus').textContent = '🔧';
+            return;
+        }
+        
         const response = await fetch(apiUrl);
         
         if (response.ok) {
@@ -653,9 +728,13 @@ async function testConnection() {
 
 // 獲取API URL
 function getApiUrl(endpoint) {
-    // 使用後端Zeabur網址
-    const backendUrl = 'https://taiwan-landlord-v3.zeabur.app';
-    return `${backendUrl}${endpoint}`;
+    // 暫時強制使用模擬數據，因為後端服務不可用
+    console.log('🔧 後端服務不可用，使用模擬數據模式');
+    return null; // 返回null表示使用模擬數據
+    
+    // 原始代碼（保留以供將來恢復）：
+    // const backendUrl = 'https://taiwan-landlord-v3.zeabur.app';
+    // return `${backendUrl}${endpoint}`;
 }
 
 // 顯示通知
