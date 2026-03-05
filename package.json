@@ -1,0 +1,38 @@
+{
+  "name": "taiwan-landlord-vietnam-tenant-system",
+  "version": "0.1.1",
+  "private": true,
+  "description": "台灣房東越南租客管理系統 - 專為台灣房東管理越南租客設計的管理平台",
+  "author": "OpenClaw Assistant",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "autoprefixer": "^10.4.19",
+    "date-fns": "^3.6.0",
+    "lucide-react": "^0.344.0",
+    "next": "16.1.6",
+    "postcss": "^8.4.38",
+    "react": "^18",
+    "react-dom": "^18",
+    "tailwindcss": "^3.4.1",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.35",
+    "@types/react": "^18.3.28",
+    "@types/react-dom": "^18.3.7",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1",
+    "eslint": "^10.0.2",
+    "eslint-config-next": "^0.2.4",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
