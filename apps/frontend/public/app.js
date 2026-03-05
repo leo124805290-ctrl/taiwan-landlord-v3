@@ -687,7 +687,34 @@ async function handlePropertySubmit(event) {
     } catch (error) {
         console.error('❌ 物業新增失敗:', error);
         console.error('錯誤詳情:', error.stack);
-        showNotification(`物業新增失敗: ${error.message.split('\n')[0]}`, 'error');
+        
+        // 分析錯誤類型，提供具體建議
+        let errorMessage = '物業新增失敗';
+        let errorType = 'error';
+        
+        if (error.message.includes('Failed to fetch')) {
+            errorMessage = '無法連接到後端伺服器。請檢查：\n1. 後端服務是否已部署\n2. 網路連接是否正常\n3. CORS設定是否正確';
+            errorType = 'warning';
+            
+            // 建議切換到模擬數據模式
+            const useMock = confirm('後端服務不可用，是否切換到模擬數據模式？\n\n在模擬模式下，您可以：\n• 新增物業（本地保存）\n• 快速入住\n• 記錄支出\n\n數據會保存在瀏覽器中，可以隨時匯出。');
+            
+            if (useMock) {
+                localStorage.setItem('forceMockData', 'true');
+                showNotification('已切換到模擬數據模式', 'info');
+                // 重新嘗試（會使用模擬模式）
+                handlePropertySubmit(event);
+                return;
+            }
+        } else if (error.message.includes('HTTP 404')) {
+            errorMessage = '後端API路徑不存在。請檢查後端部署配置。';
+        } else if (error.message.includes('HTTP 5')) {
+            errorMessage = '後端伺服器錯誤。請檢查後端日誌。';
+        } else {
+            errorMessage = `物業新增失敗: ${error.message.split('\n')[0]}`;
+        }
+        
+        showNotification(errorMessage, errorType);
     }
 }
 
@@ -700,22 +727,43 @@ async function testConnection() {
         if (apiUrl === null) {
             console.log('🔧 跳過健康檢查（模擬數據模式）');
             document.getElementById('apiStatus').textContent = '🔧';
+            document.getElementById('apiStatus').title = '模擬數據模式';
             return;
         }
         
-        const response = await fetch(apiUrl);
+        console.log('🔍 測試後端連接:', apiUrl);
+        const response = await fetch(apiUrl, { 
+            method: 'GET',
+            mode: 'cors',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        console.log('📡 後端回應狀態:', response.status, response.statusText);
         
         if (response.ok) {
             const data = await response.json();
             console.log('✅ 健康檢查成功:', data);
             document.getElementById('apiStatus').textContent = '✅';
+            document.getElementById('apiStatus').title = '後端連接正常';
             
             // 更新設備數量
             if (socket) {
                 document.getElementById('deviceCount').textContent = '1 台設備在線';
             }
+            
+            // 顯示成功通知
+            showNotification('後端服務連接成功', 'success');
+            
         } else {
-            throw new Error(`HTTP ${response.status}`);
+            console.warn('⚠️ 後端服務異常:', response.status);
+            document.getElementById('apiStatus').textContent = '⚠️';
+            document.getElementById('apiStatus').title = `後端異常: HTTP ${response.status}`;
+            
+            // 建議使用模擬數據
+            showNotification(`後端服務異常 (HTTP ${response.status})，使用模擬數據`, 'warning');
+            
+            // 自動切換到模擬數據模式
+            localStorage.setItem('forceMockData', 'true');
         }
         
     } catch (error) {
@@ -728,13 +776,21 @@ async function testConnection() {
 
 // 獲取API URL
 function getApiUrl(endpoint) {
-    // 暫時強制使用模擬數據，因為後端服務不可用
-    console.log('🔧 後端服務不可用，使用模擬數據模式');
-    return null; // 返回null表示使用模擬數據
+    // 後端網址 - 如果後端部署成功，使用真實網址
+    const backendUrl = 'https://taiwan-landlord-v3.zeabur.app';
     
-    // 原始代碼（保留以供將來恢復）：
-    // const backendUrl = 'https://taiwan-landlord-v3.zeabur.app';
-    // return `${backendUrl}${endpoint}`;
+    // 檢查是否強制使用模擬數據
+    const forceMock = localStorage.getItem('forceMockData') === 'true';
+    
+    if (forceMock) {
+        console.log('🔧 強制使用模擬數據模式');
+        return null;
+    }
+    
+    // 正常返回後端網址
+    const url = `${backendUrl}${endpoint}`;
+    console.log(`🔗 API網址: ${url}`);
+    return url;
 }
 
 // 顯示通知
