@@ -1,0 +1,176 @@
+# 🚀 台灣房東系統 - Zeabur部署配置
+# 地表最強的包租公系統 💪
+# 一次部署成功保證！
+
+version: "1"
+
+# 服務配置
+services:
+  # 主應用服務
+  app:
+    type: web-service
+    plan: hobby
+    build:
+      dockerfile: Dockerfile
+      context: .
+    ports:
+      - port: 3000
+        protocol: http
+    env:
+      # 環境變數
+      NODE_ENV: production
+      PORT: 3000
+      # 資料庫連接（由Zeabur自動注入）
+      DATABASE_URL: ${{ services.database.env.DATABASE_URL }}
+      # 允許的來源（前端網址）
+      ALLOWED_ORIGINS: "*"
+      # 其他配置
+      LOG_LEVEL: info
+      MAX_REQUEST_SIZE: 10mb
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX_REQUESTS: 100
+    healthCheck:
+      path: /api/health
+      port: 3000
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      timeoutSeconds: 5
+      successThreshold: 1
+      failureThreshold: 3
+    resources:
+      cpu: 0.5
+      memory: 512Mi
+    scaling:
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPUUtilizationPercentage: 70
+    probes:
+      liveness:
+        path: /api/health
+        port: 3000
+        initialDelaySeconds: 30
+        periodSeconds: 10
+      readiness:
+        path: /api/health
+        port: 3000
+        initialDelaySeconds: 5
+        periodSeconds: 5
+
+  # PostgreSQL資料庫
+  database:
+    type: postgresql
+    plan: hobby
+    env:
+      POSTGRES_USER: admin
+      POSTGRES_DB: taiwan_landlord
+      POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+    resources:
+      cpu: 0.25
+      memory: 256Mi
+    storage:
+      size: 1Gi
+    backup:
+      enabled: true
+      schedule: "0 2 * * *"  # 每天凌晨2點備份
+      retentionDays: 7
+
+# 網路配置
+network:
+  # 內部服務通訊
+  internal:
+    - from: app
+      to: database
+      ports:
+        - 5432
+
+# 部署策略
+deployment:
+  strategy: rolling
+  maxUnavailable: 0
+  maxSurge: 1
+  minReadySeconds: 30
+
+# 監控和日誌
+monitoring:
+  enabled: true
+  metrics:
+    enabled: true
+    port: 3000
+    path: /api/metrics
+  logs:
+    enabled: true
+    retentionDays: 30
+
+# 自動擴展
+autoscaling:
+  enabled: true
+  metrics:
+    - type: cpu
+      targetAverageUtilization: 70
+    - type: memory
+      targetAverageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+
+# 環境變數說明
+variables:
+  DB_PASSWORD:
+    description: "PostgreSQL資料庫密碼"
+    required: true
+    generate: true
+    length: 32
+    includeSymbols: true
+  JWT_SECRET:
+    description: "JWT認證密鑰"
+    required: false
+    generate: true
+    length: 64
+    includeSymbols: true
+  API_KEY:
+    description: "API訪問金鑰"
+    required: false
+    generate: true
+    length: 32
+    includeSymbols: true
+
+# 部署後指令
+postDeploy:
+  - name: 初始化資料庫
+    run: |
+      echo "等待資料庫準備就緒..."
+      sleep 10
+      echo "初始化資料庫結構..."
+      curl -X GET "$ZEABUR_SERVICE_URL/api/init-db"
+    timeout: 120
+  - name: 健康檢查
+    run: |
+      echo "執行健康檢查..."
+      curl -f "$ZEABUR_SERVICE_URL/api/health"
+    retries: 3
+    timeout: 30
+
+# 標籤
+labels:
+  app: taiwan-landlord
+  version: 3.0.0
+  environment: production
+  managed-by: zeabur
+  team: taiwan-landlord-team
+
+# 註解
+annotations:
+  description: "台灣房東系統 - 地表最強的包租公管理系統"
+  features: "雲端同步,多設備支援,成本管理,即時更新"
+  contact: "系統管理員"
+  documentation: "https://github.com/leo124805290-ctrl/taiwan-landlord-ultimate"
